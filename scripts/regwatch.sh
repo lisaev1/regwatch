@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-trap "cleanup" SIGTERM 
+trap "trap - SIGTERM && cleanup" SIGTERM 
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -38,7 +38,9 @@ arm_timer() {
 		return 1
 	fi
 
-        logger -t -- "$(date)"
+	#-- send the current date/time to a socket
+	/usr/bin/date -u | /usr/bin/ncat "${REMOTE[@]}" 2>&1 | \
+		/usr/bin/logger -t "regwatch.sh" --
 }
 
 cleanup() {
@@ -47,10 +49,16 @@ cleanup() {
 }
 
 # -----------------------------------------------------------------------------
+# Parameters
+# -----------------------------------------------------------------------------
+
+declare -r FILTER="udp and (dst host 10.0.1.80) and (dst port 5060)"
+declare -ra REMOTE=("localhost" "13000")
+
+# -----------------------------------------------------------------------------
 # Main program
 # -----------------------------------------------------------------------------
 
-declare -r filter="udp and (dst host 10.0.1.80) and (dst port 5060)"
 declare s l t t_pid
 
 s=""
@@ -82,4 +90,4 @@ while read -r l; do
 			t_pid="$!"
 		fi
 	fi
-done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$filter" 2> /dev/null)
+done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$FILTER" 2> /dev/null)
