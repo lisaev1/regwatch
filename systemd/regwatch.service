@@ -5,7 +5,7 @@ Requires=postfix.service
 After=network.target postfix.service
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=/usr/bin/bash /usr/local/bin/regwatch.sh
 
 [Install]

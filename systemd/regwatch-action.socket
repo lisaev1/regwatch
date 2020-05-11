@@ -2,7 +2,7 @@
 Description=Socket for dispatching regwatch actions
 
 [Socket]
-ListenStream=13000
+ListenStream=127.0.0.1:13000
 Accept=true
 
 [Install]
