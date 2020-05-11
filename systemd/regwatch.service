@@ -1,5 +1,5 @@
 [Unit]
-Description=Watch and warn about expired SIP registration
+Description=Watch and warn about failed SIP registration
 Wants=network.target
 Requires=postfix.service
 After=network.target postfix.service

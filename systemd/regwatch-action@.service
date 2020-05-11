@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute an action when SIP registration fails
+After=network.target
+
+[Service]
+Type=simple
+User=hylafax
+StandardInput=socket
+ExecStart=/usr/bin/bash /usr/local/bin/regwatch-action.sh

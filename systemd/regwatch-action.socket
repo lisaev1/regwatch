@@ -1,0 +1,9 @@
+[Unit]
+Description=Socket for dispatching regwatch actions
+
+[Socket]
+ListenStream=13000
+Accept=true
+
+[Install]
+WantedBy=sockets.target
