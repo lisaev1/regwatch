@@ -39,8 +39,7 @@ arm_timer() {
 	fi
 
 	#-- send the current date/time to a socket
-	/usr/bin/date -u | /usr/bin/ncat "${REMOTE[@]}" 2>&1 | \
-		/usr/bin/logger -t "regwatch.sh" --
+	/usr/bin/date -u | /usr/bin/ncat "${REMOTE[@]}" 2>&1 | "${LOGGER[@]}"
 }
 
 cleanup() {
@@ -52,8 +51,10 @@ cleanup() {
 # Parameters
 # -----------------------------------------------------------------------------
 
-declare -r FILTER="udp and (dst host 10.0.1.80) and (dst port 5060)"
-declare -ra REMOTE=("localhost" "13000")
+declare -r FILTER="udp and (dst host 10.0.1.80) and (dst port 5060)" \
+	DBG="yes"
+declare -ra REMOTE=("localhost" "13000") \
+	LOGGER=("/usr/bin/logger" "-t" "$0" "--")
 
 # -----------------------------------------------------------------------------
 # Main program
@@ -70,6 +71,8 @@ while read -r l; do
 
 	#-- end of packet reached - parse collected headers
 	if [[ -z "$l" && -n "$s" ]]; then
+		[[ "$DBG" == "yes" ]] && "${LOGGER[@]}" "Got packet: $s"
+
 		t=""
 		if [[ "$s" =~ \|CSeq:.*REGISTER\| ]]; then
 			if [[ "$s" =~ \;expires=([0-9]{1,})\; ]]; then
@@ -77,6 +80,9 @@ while read -r l; do
 
 				#-- disable the timer if armed
 				if [[ -n "$t_pid" && -d "/proc/$t_pid" ]]; then
+					[[ "$DBG" == "yes" ]] && \
+						"${LOGGER[@]}" "Stop timer $!"
+
 					kill -- "$t_pid" 2> /dev/null
 					t_pid=""
 				fi
@@ -88,6 +94,9 @@ while read -r l; do
 			#-- arm the timer for 1.1 * t sec
 			arm_timer "$t" &
 			t_pid="$!"
+
+			[[ "$DBG" == "yes" ]] && \
+				"${LOGGER[@]}" "Start timer $!"
 		fi
 	fi
 done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$FILTER" 2> /dev/null)
