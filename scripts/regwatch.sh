@@ -63,8 +63,8 @@ declare s l t t_pid
 declare -a REMOTE a
 
 #-- check input
-if (( $# > 1 )); then
-        echo -E "Too many arguments, expecting only one of the form IP:PORT"
+if (( $# != 1 )); then
+        echo -E "Wrong # of arguments, expecting only one of the form IP:PORT"
         exit 1
 fi
 
