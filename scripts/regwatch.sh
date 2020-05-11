@@ -53,15 +53,40 @@ cleanup() {
 
 declare -r FILTER="udp and (dst host 10.0.1.80) and (dst port 5060)" \
 	DBG="yes"
-declare -ra REMOTE=("localhost" "13000") \
-	LOGGER=("/usr/bin/logger" "-t" "$0" "--")
+declare -ra LOGGER=("/usr/bin/logger" "-t" "${0##*/}" "--")
 
 # -----------------------------------------------------------------------------
 # Main program
 # -----------------------------------------------------------------------------
 
 declare s l t t_pid
+declare -a REMOTE a
 
+#-- check input
+if (( $# > 1 )); then
+        echo -E "Too many arguments, expecting only one of the form IP:PORT"
+        exit 1
+fi
+
+IFS=":" read -ra REMOTE <<< "$1"
+if (( REMOTE[1] == 0 )); then
+        echo -E "Bad port number (${REMOTE[1]:-<empty>})"
+        exit 1
+fi
+
+IFS="." read -ra a <<< "${REMOTE[0]}"
+if (( ${#a[@]} < 4 )); then
+        echo -E "Bad IP address (${REMOTE[0]:-<empty>})"
+        exit 1
+fi
+for (( s = 0; s < ${#a[@]}; ++s )); do
+        if (( a[s] == 0 )); then
+                echo -E "Bad IP address (${REMOTE[0]:-<empty>})"
+                exit 1
+        fi
+done
+
+#-- start the watcher
 s=""
 t_pid=""
 while read -r l; do
