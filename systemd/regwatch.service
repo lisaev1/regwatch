@@ -6,8 +6,6 @@ After=network.target postfix.service
 
 [Service]
 Type=forking
-User=hylafax
-Group=hylafax
 ExecStart=/usr/bin/bash /usr/local/bin/regwatch.sh
 
 [Install]
