@@ -69,21 +69,22 @@ if (( $# != 1 )); then
 fi
 
 IFS=":" read -ra REMOTE <<< "$1"
-if (( REMOTE[1] == 0 )); then
+if [[ ! "${REMOTE[1]}" =~ ^[0-9]{2,5}$ ]]; then
         echo -E "Bad port number (${REMOTE[1]:-<empty>})"
         exit 1
 fi
 
 IFS="." read -ra a <<< "${REMOTE[0]}"
-if (( ${#a[@]} < 4 )); then
+if (( ${#a[@]} != 4 )); then
         echo -E "Bad IP address (${REMOTE[0]:-<empty>})"
         exit 1
 fi
-for (( s = 0; s < ${#a[@]}; ++s )); do
-        if (( a[s] == 0 )); then
-                echo -E "Bad IP address (${REMOTE[0]:-<empty>})"
-                exit 1
-        fi
+for s in "${a[@]}"; do
+	if [[ "$s" =~ ^[0-9]{1,3}$ ]] && (( s < 255 )); then
+		continue
+	fi
+	echo -E "Bad IP address (${REMOTE[0]:-<empty>})"
+	exit 1
 done
 
 #-- start the watcher
