@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#set -x
+set -o errexit
+set -o nounset
 
 trap "cleanup" SIGTERM 
 
@@ -54,10 +55,7 @@ declare s l t t_pid
 
 s=""
 t_pid=""
-echo -E ">>> $$"
 while read -r l; do
-	#echo -E "$l"
-
 	#-- collect headers for each "200 OK" packet
 	[[ "$l" =~ ^IP\ .*200\ OK$ ]] && s="|"
 	[[ -n "$s" ]] && s="${s}|$l"
@@ -65,14 +63,12 @@ while read -r l; do
 	#-- end of packet reached - parse collected headers
 	if [[ -z "$l" && -n "$s" ]]; then
 		t=""
-		echo -E ">>> $s"
 		if [[ "$s" =~ \|CSeq:.*REGISTER\| ]]; then
 			if [[ "$s" =~ \;expires=([0-9]{1,})\; ]]; then
 				t="${BASH_REMATCH[1]}"
 
 				#-- disable the timer if armed
-				if [[ (-n "$t_pid") && (-d "/proc/$t_pid") ]]; then
-					echo -E ">>> Stop the timer at $! on $(date)"
+				if [[ -n "$t_pid" && -d "/proc/$t_pid" ]]; then
 					kill -- "$t_pid" 2> /dev/null
 					t_pid=""
 				fi
@@ -84,8 +80,6 @@ while read -r l; do
 			#-- arm the timer for 1.1 * t sec
 			arm_timer "$t" &
 			t_pid="$!"
-
-			echo -E ">>> Arming timer with pid $! for ~$t sec on $(date)..."
 		fi
 	fi
-done < <(tcpdump -Annti eth0 --immediate-mode -l -s 768 "$filter" 2> /dev/null)
+done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$filter" 2> /dev/null)
