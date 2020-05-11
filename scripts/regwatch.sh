@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-trap "trap - SIGTERM && cleanup" SIGTERM 
+trap "trap - SIGTERM && cleanup" SIGTERM
 
 # -----------------------------------------------------------------------------
 # Functions
