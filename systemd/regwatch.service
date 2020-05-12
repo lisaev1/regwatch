@@ -6,7 +6,7 @@ After=network.target postfix.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bash /usr/local/bin/regwatch.sh
+ExecStart=/usr/bin/bash /usr/local/bin/regwatch.sh 127.0.0.1:13000
 
 [Install]
 WantedBy=multi-user.target
