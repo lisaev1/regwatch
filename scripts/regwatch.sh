@@ -70,7 +70,7 @@ if (( $# != 1 )); then
 fi
 
 IFS=":" read -ra REMOTE <<< "$1"
-if [[ ! "${REMOTE[1]}" =~ ^[0-9]{2,5}$ ]]; then
+if [[ ! "${REMOTE[1]:-}" =~ ^[0-9]{2,5}$ ]]; then
         "${LOGGER[@]}" "Bad port number (${REMOTE[1]:-<empty>})"
         exit 1
 fi
