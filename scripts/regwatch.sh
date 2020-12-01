@@ -53,7 +53,7 @@ cleanup() {
 
 declare -r FILTER="udp and (dst host 10.0.1.80) and (dst port 5060)" \
 	DBG="yes"
-declare -ra LOGGER=("/usr/bin/logger" "-t" "${0##*/}" "--")
+declare -ra LOGGER=("/usr/bin/logger" "-t" "${0##*/}($$)" "--")
 
 # -----------------------------------------------------------------------------
 # Main program
@@ -102,13 +102,14 @@ while read -r l; do
 
 		t=""
 		if [[ "$s" =~ \|CSeq:.*REGISTER\| ]]; then
+			"${LOGGER[@]}" "REGISTER packet: $s"
+
 			if [[ "$s" =~ \;expires=([0-9]{1,})\; ]]; then
 				t="${BASH_REMATCH[1]}"
 
 				#-- disable the timer if armed
 				if [[ -n "$t_pid" && -d "/proc/$t_pid" ]]; then
-					[[ "$DBG" == "yes" ]] && \
-						"${LOGGER[@]}" "Stop timer $!"
+					"${LOGGER[@]}" "Stop timer $!"
 
 					kill -- "$t_pid" 2> /dev/null
 					t_pid=""
@@ -122,8 +123,7 @@ while read -r l; do
 			arm_timer "$t" &
 			t_pid="$!"
 
-			[[ "$DBG" == "yes" ]] && \
-				"${LOGGER[@]}" "Start timer $!"
+			"${LOGGER[@]}" "Start timer $!"
 		fi
 	fi
 done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$FILTER" 2> /dev/null)
