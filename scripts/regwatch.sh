@@ -19,8 +19,13 @@ trap "trap - SIGTERM && cleanup" SIGTERM
 snore() {
 	local f="" t="$1"
 
-	[[ -z "$f" ]] && exec {f}<> <(:)
+	trap 'exec {f}<&-; return 1' TERM
+
+	exec {f}<> <(:)
+	"${LOGGER[@]}" "snore(): using fd $f"
+
 	read -t "$t" -u "$f" || :
+	exec {f}<&-
 }
 
 # Watchdog timer that executes a command after a timeout
@@ -33,7 +38,7 @@ arm_timer() {
 	local -i e="$1"
 
 	if (( e > 0 )); then
-		snore "$(( e + e / 10 ))"
+		snore "$(( e + e / 10 ))" || return 0
 	else
 		return 1
 	fi
@@ -109,9 +114,11 @@ while read -r l; do
 
 				#-- disable the timer if armed
 				if [[ -n "$t_pid" && -d "/proc/$t_pid" ]]; then
-					"${LOGGER[@]}" "Stop timer $!"
+					"${LOGGER[@]}" "Stopping timer $t_pid"
 
-					kill -- "$t_pid" 2> /dev/null
+					kill -- "$t_pid" 2>&1 | "${LOGGER[@]}"
+					(( ${PIPESTATUS[0]} == 0 )) && \
+						"${LOGGER[@]}" "... killed"
 					t_pid=""
 				fi
 			fi
@@ -123,7 +130,7 @@ while read -r l; do
 			arm_timer "$t" &
 			t_pid="$!"
 
-			"${LOGGER[@]}" "Start timer $!"
+			"${LOGGER[@]}" "Started timer $t_pid"
 		fi
 	fi
 done < <(tcpdump -Annlti eth0 --immediate-mode -s 768 "$FILTER" 2> /dev/null)
