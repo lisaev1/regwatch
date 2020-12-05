@@ -113,10 +113,11 @@ while read -r l; do
 				t="${BASH_REMATCH[1]}"
 
 				#-- disable the timer if armed
-				if [[ -n "$t_pid" && -d "/proc/$t_pid" ]]; then
+				if [[ -n "$t_pid" ]]; then
 					"${LOGGER[@]}" "Stopping timer $t_pid"
 
-					kill -- "$t_pid" 2>&1 | "${LOGGER[@]}"
+					kill -- %arm_timer 2>&1 | \
+						"${LOGGER[@]}"
 					(( ${PIPESTATUS[0]} == 0 )) && \
 						"${LOGGER[@]}" "... killed"
 					t_pid=""
