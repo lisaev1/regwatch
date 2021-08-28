@@ -6,7 +6,7 @@ After=network.target postfix.service regwatch-action.socket
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bash /usr/local/bin/regwatch.sh 127.0.0.1:13000
+ExecStart=/usr/bin/python3 /usr/local/bin/regwatch.py
 
 [Install]
 WantedBy=multi-user.target
