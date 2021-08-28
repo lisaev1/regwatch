@@ -82,10 +82,10 @@ while not killer.killnow:
         p += "|" + l
 
     if ((len(l) == 0) and (len(p) > 0)):
-        if DBG: print("Got 200 OK packet: ", p)
-
         t = -1
         if RE_REGISTER.match(p):
+            if DBG: print("Got 200 OK REGISTER packet: ", p)
+
             t = RE_EXP.search(p).group(1)
             if t:
                 t = int(t)
