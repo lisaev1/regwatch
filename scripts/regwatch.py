@@ -88,10 +88,17 @@ while not killer.killnow:
 
             t = RE_EXP.search(p).group(1)
             if t:
-                t = int(t)
+                try:
+                    t = int(t)
+                except ValueError:
+                    t = -1
+            else:
+                t = -1
+
             if DBG: print("Timeout: {} sec".format(t))
 
-            if (isinstance(timer, threading.Timer) and timer.isAlive()):
+            if (isinstance(timer, threading.Timer) and
+                    timer.isAlive() and (t > 0)):
                 timer.cancel()
                 if DBG: print("Timer canceled", timer)
 
