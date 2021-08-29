@@ -6,6 +6,7 @@ import re, subprocess, threading, signal, socket, syslog, os
 
 DBG = False
 BPF_FILTER = "udp and (dst host 192.168.122.43) and (dst port 5060)"
+IFACE="ens4"
 
 #-- tuple (action host, action port)
 ACTION_HP = ("localhost", 13000)
@@ -15,7 +16,7 @@ ACTION_HP = ("localhost", 13000)
 # -----------------------------------------------------------------------------
 
 #-- tcpdump(1) cmdline
-TCPDUMP_CMD = ["/usr/sbin/tcpdump", "-Annlti", "ens4", \
+TCPDUMP_CMD = ["/usr/sbin/tcpdump", "-Annlti", IFACE, \
 	"--immediate-mode", "-s", "768", BPF_FILTER]
 
 #-- regex's to match packets against
