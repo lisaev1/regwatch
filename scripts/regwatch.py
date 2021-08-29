@@ -1,10 +1,10 @@
-import re, subprocess, threading, signal, socket
+import re, subprocess, threading, signal, socket, syslog, os
 
 # -----------------------------------------------------------------------------
 # Configuration -- don't edit beyond this section
 # -----------------------------------------------------------------------------
 
-DBG = True
+DBG = False
 BPF_FILTER = "udp and (dst host 192.168.122.43) and (dst port 5060)"
 
 #-- tuple (action host, action port)
@@ -60,12 +60,30 @@ def timer_action():
     print("Timer elapsed")
 
 
+def write_msg(s):
+    """
+    Print message to stdout or syslog
+
+    Input:
+        s -- message to output
+    Returns:
+        None
+    """
+    if DBG:
+        print(str(s))
+    else:
+        syslog.syslog(str(s))
+
+
 # -----------------------------------------------------------------------------
 # Main program
 # -----------------------------------------------------------------------------
 
 #-- establish a SIGTERM handler
 killer = CleanUp()
+
+#-- set up syslog
+syslog.openlog(ident = "regwatch.py({})".format(os.getpid()))
 
 #-- start tcpdump(1)
 t_pipe = subprocess.Popen(TCPDUMP_CMD, stdout=subprocess.PIPE,
@@ -84,7 +102,7 @@ while not killer.killnow:
     if ((len(l) == 0) and (len(p) > 0)):
         t = -1
         if RE_REGISTER.match(p):
-            if DBG: print("Got 200 OK REGISTER packet: ", p)
+            write_msg("Serialized a 200 OK REGISTER packet <{}>".format(p))
 
             t = RE_EXP.search(p).group(1)
             if t:
@@ -95,18 +113,18 @@ while not killer.killnow:
             else:
                 t = -1
 
-            if DBG: print("Timeout: {} sec".format(t))
+            write_msg("Timeout: {} sec".format(t))
 
             if (isinstance(timer, threading.Timer) and
                     timer.isAlive() and (t > 0)):
                 timer.cancel()
-                if DBG: print("Timer canceled", timer)
+                write_msg("Timer \"{}\" canceled".format(timer))
 
         p = ""
         if (t > 0):
             timer = threading.Timer(1.1 * t , timer_action)
             timer.start()
-            if DBG: print("Timer armed", timer)
+            write_msg("Timer \"{}\" armed".format(timer))
 
 
 #-- cleanup
