@@ -56,9 +56,9 @@ def timer_action():
             s.connect(ACTION_HP)
             s.sendall(ACTION_TOKEN)
         except socket.error as err:
-            print("Couldn't connect to {}: {}".format(ACTION_HP, err))
+            write_msg("Couldn't connect to {}: {}".format(ACTION_HP, err))
 
-    print("Timer elapsed")
+    write_msg("Timer elapsed")
 
 
 def write_msg(s):
