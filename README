@@ -1,0 +1,19 @@
+# Regwatch
+
+## Table of contents
+1. Description
+1. Requirements
+2. License
+
+## Description
+
+This is a set of simple scripts to notify an admin of situations when SIP
+registration has expired.
+
+## Requirements
+
+`tcpdump`, `bash`, `python3`, `systemd`
+
+## License
+
+GPLv3
